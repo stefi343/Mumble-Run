@@ -1,0 +1,190 @@
+import pygame
+from button import Button
+import random
+
+pygame.init()
+pygame.font.init()
+
+bg_img1 = pygame.image.load("download.png")
+bg1 = pygame.transform.scale(bg_img1, (1000, 500))
+
+screen = pygame.display.set_mode((1000, 500))
+pygame.display.set_caption("Menu")
+
+standing_img = pygame.image.load("Penguin3.png")
+standing = pygame.transform.scale(standing_img, (100, 200))
+
+
+def get_font(size):
+    return pygame.font.Font("font.ttf", size)
+
+
+def play():
+    window = pygame.display.set_mode((1000, 500))
+    pygame.display.set_caption("Mumble Run")
+
+    a = 50
+    b = 100
+    c = 50
+
+    character_img = pygame.image.load("Penguin1.png")
+    character = pygame.transform.scale(character_img, (a, b))
+
+    font = pygame.font.Font("font.ttf", 30)
+
+    white = (255, 255, 255)
+    black = (0, 0, 0)
+
+    score = 0
+    obstacles = [300, 500, 700, 900, 1100, 1300]
+    obstacles_speed = 5
+    active = False
+    fps = 90
+    timer = pygame.time.Clock()
+
+    pale_turquoise = (175, 238, 238)
+    light_sky_blue = (135, 206, 250)
+    royal_blue = (65, 105, 225)
+
+    x = 15
+    y = 430
+    vel_x = 10
+    vel_y = 10
+    jump = False
+
+    bg_img = pygame.image.load('background1.jpg')
+    bg = pygame.transform.scale(bg_img, (1000, 500))
+
+    k = 0
+    width = 1000
+
+    while True:
+        player = pygame.draw.rect(window, (255, 255, 255), [x, y, a, c])
+
+        window.blit(bg, (k, 0))
+        window.blit(bg, (width + k, 0))
+        if k == -width:
+            window.blit(bg, (width + k, 0))
+            k = 0
+        k -= 1
+        pygame.draw.rect(window, (255, 255, 255), [0, 450, width, 50])
+
+        timer.tick(fps)
+        window.blit(character, (x, y - 80))
+
+        obstacle0 = pygame.draw.rect(window, pale_turquoise, [obstacles[0], 400, a, c])
+        obstacle1 = pygame.draw.rect(window, light_sky_blue, [obstacles[1], 380, a, 70])
+        obstacle2 = pygame.draw.rect(window, royal_blue, [obstacles[2], 360, a, 90])
+        obstacle3 = pygame.draw.rect(window, pale_turquoise, [obstacles[3], 390, a, 60])
+        obstacle4 = pygame.draw.rect(window, light_sky_blue, [obstacles[4], 370, a, 80])
+        obstacle5 = pygame.draw.rect(window, royal_blue, [obstacles[5], 350, a, 100])
+
+        if not active:
+            instruction_text = font.render('press space to play', True, black, white)
+            window.blit(instruction_text, (375, 250))
+            instruction_text2 = font.render('in game: Press Space to jump and right and left key to move',
+                                            True, black, white)
+            window.blit(instruction_text2, (130, 290))
+
+        score_text = font.render(f'Score: {score}', True, black, white)
+        window.blit(score_text, (450, 100))
+
+        # Movement
+        userInput = pygame.key.get_pressed()
+        if userInput[pygame.K_LEFT] and x > 0:
+            x -= vel_x
+
+        if userInput[pygame.K_RIGHT] and x < 1000:
+            x += vel_x
+
+        # Jump
+        if jump is False and userInput[pygame.K_SPACE]:
+            jump = True
+        if jump is True:
+            y -= vel_y * 5
+            vel_y -= 1
+            if vel_y < -10:
+                jump = False
+                vel_y = 10
+
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN and not active:
+                if event.key == pygame.K_SPACE:
+                    obstacles = [300, 500, 700, 900, 1100, 1300]
+                    x = 15
+                    k = 0
+                    score = 0
+                    active = True
+
+        for i in range(len(obstacles)):
+            if active is True:
+                obstacles[i] -= obstacles_speed
+                if obstacles[i] < - 0:
+                    obstacles[i] = random.randint(1000, 1200)
+                    obstacles_speed += 0.05
+                    score += 1
+
+        if player.colliderect(obstacle0) or player.colliderect(obstacle1) or player.colliderect(obstacle2) \
+                or player.colliderect(obstacle3) or player.colliderect(obstacle4) or player.colliderect(obstacle5):
+            active = False
+
+        PLAY_MOUSE_POS = pygame.mouse.get_pos()
+
+        PLAY_BACK = Button(image=None, pos=(30, 20),
+                           text_input="BACK", font=get_font(20), base_color="White", new_color="Black")
+
+        PLAY_BACK.changeColor(PLAY_MOUSE_POS)
+        PLAY_BACK.update(screen)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if PLAY_BACK.checkForInput(PLAY_MOUSE_POS):
+                    main_menu()
+
+        pygame.display.update()
+        pygame.time.delay(50)
+
+
+def main_menu():
+    while True:
+        screen.blit(bg1, (0, 0))
+
+        screen.blit(standing, (30, 170))
+        instruction_text = get_font(30).render('Hello there', True, (0, 0, 0), (255, 255, 255))
+        screen.blit(instruction_text, (120, 200))
+
+        MENU_MOUSE_POS = pygame.mouse.get_pos()
+
+        MENU_TEXT = get_font(120).render("Mumble Run", True, (0, 0, 0))
+        MENU_RECT = MENU_TEXT.get_rect(center=(500, 100))
+
+        PLAY_BUTTON = Button(image=pygame.image.load("Play Rect.png"), pos=(500, 240),
+                             text_input="PLAY", font=get_font(70), base_color=(255, 255, 255),
+                             new_color=(73, 166, 185))
+        QUIT_BUTTON = Button(image=pygame.image.load("Quit Rect.png"), pos=(500, 400),
+                             text_input="QUIT", font=get_font(70), base_color=(255, 255, 255),
+                             new_color=(73, 166, 185))
+
+        screen.blit(MENU_TEXT, MENU_RECT)
+
+        for button in [PLAY_BUTTON, QUIT_BUTTON]:
+            button.changeColor(MENU_MOUSE_POS)
+            button.update(screen)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if PLAY_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    play()
+                if QUIT_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    pygame.quit()
+
+        pygame.display.update()
+
+
+main_menu()
+
